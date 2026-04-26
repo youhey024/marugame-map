@@ -55,6 +55,19 @@ export default function Map() {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map)
 
+    map.locate({ watch: true, setView: false })
+    map.on('locationfound', (e) => {
+      L.circle(e.latlng, { radius: e.accuracy / 2 }).addTo(map)
+      L.marker(e.latlng, {
+        icon: L.divIcon({
+          className: '',
+          html: '<div style="width:16px;height:16px;background:blue;border:2px solid white;border-radius:50%;box-shadow:0 0 4px rgba(0,0,0,0.5)"></div>',
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
+        })
+      }).addTo(map).bindPopup('現在地')
+    })
+
     fetch('/shops.json')
       .then(res => res.json())
       .then(shops => {
