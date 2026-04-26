@@ -68,6 +68,25 @@ export default function Map() {
       }).addTo(map).bindPopup('現在地')
     })
 
+    // カウンター
+    const CounterControl = L.Control.extend({
+      onAdd: () => {
+        const div = L.DomUtil.create('div')
+        div.id = 'visit-counter'
+        div.style.cssText = 'background:rgba(255,255,255,0.85);padding:6px 12px;border-radius:8px;font-size:14px;font-weight:bold;box-shadow:0 1px 4px rgba(0,0,0,0.3)'
+        div.innerHTML = '読み込み中...'
+        return div
+      }
+    })
+    new CounterControl({ position: 'topleft' }).addTo(map)
+
+    function updateCounter() {
+      const el = document.getElementById('visit-counter')
+      if (!el) return
+      const visited = getVisited()
+      el.innerHTML = `✓ ${visited.size} / 56 店舗訪問済み`
+    }
+
     fetch('/shops.json')
       .then(res => res.json())
       .then(shops => {
@@ -95,11 +114,13 @@ export default function Map() {
               saveVisited(visited)
               marker.setIcon(createIcon(visited.has(shop.id)))
               marker.setPopupContent(buildPopupHtml(shop, visited.has(shop.id)))
+              updateCounter()
             })
           })
 
           markers[shop.id] = marker
         })
+        updateCounter()
       })
 
     return () => {
