@@ -55,6 +55,7 @@ export default function Map() {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map)
 
+    // 現在地表示
     map.locate({ watch: true, setView: false })
     map.on('locationfound', (e) => {
       L.circle(e.latlng, { radius: e.accuracy / 2 }).addTo(map)
@@ -71,11 +72,34 @@ export default function Map() {
     // カウンター
     const CounterControl = L.Control.extend({
       onAdd: () => {
-        const div = L.DomUtil.create('div')
-        div.id = 'visit-counter'
-        div.style.cssText = 'background:rgba(255,255,255,0.85);padding:6px 12px;border-radius:8px;font-size:14px;font-weight:bold;box-shadow:0 1px 4px rgba(0,0,0,0.3)'
-        div.innerHTML = '読み込み中...'
-        return div
+        const container = L.DomUtil.create('div')
+        container.style.cssText = 'max-width:280px'
+        L.DomEvent.disableClickPropagation(container)
+
+        // カウンター
+        const counter = L.DomUtil.create('div', '', container)
+        counter.id = 'visit-counter'
+        counter.style.cssText = 'background:white;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,0.4);cursor:pointer;color:#333;'
+        counter.innerHTML = '読み込み中...'
+
+        // パネル
+        const panel = L.DomUtil.create('div', '', container)
+        panel.id = 'visit-panel'
+        panel.style.cssText = 'display:none;margin-top:6px;background:white;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.3);max-height:60vh;overflow-y:auto;'
+
+        const panelHeader = L.DomUtil.create('div', '', panel)
+        panelHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid #eee;'
+        panelHeader.innerHTML = '<span style="font-weight:bold;font-size:14px">訪問済み店舗</span><span id="visit-panel-close" style="cursor:pointer;font-size:18px">✕</span>'
+
+        const list = L.DomUtil.create('div', '', panel)
+        list.id = 'visit-panel-list'
+        list.style.cssText = 'padding:0 14px;'
+
+        counter.addEventListener('click', () => {
+          panel.style.display = panel.style.display === 'none' ? 'block' : 'none'
+        })
+
+        return container
       }
     })
     new CounterControl({ position: 'topleft' }).addTo(map)
@@ -85,6 +109,36 @@ export default function Map() {
       if (!el) return
       const visited = getVisited()
       el.innerHTML = `✓ ${visited.size} / 56 店舗訪問済み`
+    }
+
+    function updatePanel(shops: { id: number; name: string; lat: number; lng: number }[], markers: Record<number, L.Marker>) {
+      const list = document.getElementById('visit-panel-list')
+      if (!list) return
+      const visited = getVisited()
+      const visitedShops = shops.filter(s => visited.has(s.id))
+      if (visitedShops.length === 0) {
+        list.innerHTML = '<p style="color:#888;font-size:14px">まだ訪問した店舗はありません</p>'
+        return
+      }
+      list.innerHTML = visitedShops.map(s => `
+        <div id="panel-item-${s.id}" style="padding:10px 0;border-bottom:1px solid #eee;cursor:pointer;font-size:14px">
+          🍜 ${s.name}
+        </div>
+      `).join('')
+
+      visitedShops.forEach(s => {
+        const el = document.getElementById(`panel-item-${s.id}`)
+        if (!el) return
+        el.addEventListener('click', () => {
+          map.setView([s.lat, s.lng], 15)
+          markers[s.id]?.openPopup()
+        })
+      })
+      document.getElementById('visit-panel-close')?.addEventListener('click', (e) => {
+        e.stopPropagation()
+        const panel = document.getElementById('visit-panel')
+        if (panel) panel.style.display = 'none'
+      })
     }
 
     fetch('/shops.json')
@@ -115,12 +169,15 @@ export default function Map() {
               marker.setIcon(createIcon(visited.has(shop.id)))
               marker.setPopupContent(buildPopupHtml(shop, visited.has(shop.id)))
               updateCounter()
+              updatePanel(shops, markers)
             })
           })
 
           markers[shop.id] = marker
         })
+
         updateCounter()
+        updatePanel(shops, markers)
       })
 
     return () => {
@@ -129,5 +186,9 @@ export default function Map() {
     }
   }, [])
 
-  return <div id="map" style={{ height: '100vh', width: '100%' }} />
+  return (
+    <div style={{ position: 'relative', height: '100vh', width: '100%' }}>
+      <div id="map" style={{ height: '100%', width: '100%' }} />
+    </div>
+  )
 }
