@@ -170,19 +170,19 @@ export default function Map() {
         // カウンター
         const counter = L.DomUtil.create('div', '', container)
         counter.id = 'visit-counter'
-        counter.style.cssText = 'background:#ffffff;padding:8px 14px;border-radius:8px;font-size:14px;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,0.4);cursor:pointer;color:#333;'
+        counter.style.cssText = 'background:rgba(255,255,255,0.75);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);padding:8px 14px;border-radius:8px;font-size:14px;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,0.4);cursor:pointer;color:#333;'
         counter.innerHTML = '読み込み中...'
 
         // パネル
         const panel = L.DomUtil.create('div', '', container)
         panel.id = 'visit-panel'
-        panel.style.cssText = 'display:none;margin-top:6px;background:#ffffff;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.3);max-height:60vh;overflow-y:auto;'
+        panel.style.cssText = 'display:none;margin-top:6px;background:rgba(255,255,255,0.75);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.3);max-height:60vh;overflow-y:auto;'
 
         const panelHeader = L.DomUtil.create('div', '', panel)
-        panelHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid #eee;background:#ffffff;'
-        panelHeader.innerHTML = '<span style="font-weight:bold;font-size:14px">訪問済み店舗</span><span id="visit-panel-close" style="cursor:pointer;font-size:18px">✕</span>'
-
+        panelHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid rgba(0,0,0,0.1);'
+        panelHeader.innerHTML = '<span style="font-weight:bold;font-size:14px;color:#333;">訪問済み店舗</span><span id="visit-panel-close" style="cursor:pointer;font-size:18px;color:#333;">✕</span>'
         const list = L.DomUtil.create('div', '', panel)
+
         list.id = 'visit-panel-list'
         list.style.cssText = 'padding:0 14px;'
 
@@ -208,11 +208,11 @@ export default function Map() {
       const visited = getVisited()
       const visitedShops = shops.filter(s => isVisited(visited, s.id))
       if (visitedShops.length === 0) {
-        list.innerHTML = '<p style="color:#888;font-size:14px">まだ訪問した店舗はありません</p>'
+        list.innerHTML = '<p style="color:#666;font-size:14px;padding:10px 0;">まだ訪問した店舗はありません</p>'
         return
       }
       list.innerHTML = visitedShops.map(s => `
-        <div id="panel-item-${s.id}" style="padding:10px 0;border-bottom:1px solid #eee;cursor:pointer;font-size:14px">
+        <div id="panel-item-${s.id}" style="padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.1);cursor:pointer;font-size:14px;color:#333;">
           🍜 ${s.name}
         </div>
       `).join('')
