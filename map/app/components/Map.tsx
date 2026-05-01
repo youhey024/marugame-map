@@ -126,7 +126,7 @@ function buildPopupHtml(shop: { id: number; name: string; address: string }, vis
       <label for="photo-${shop.id}" style="display:inline-block;margin-top:6px;padding:4px 10px;background:#f0f0f0;border-radius:4px;cursor:pointer;font-size:13px">
         ${photo ? '📷 写真を変更' : '📷 写真を追加'}
       </label>
-      <input id="photo-${shop.id}" type="file" accept="image/*" capture="environment" style="display:none" />
+      <input id="photo-${shop.id}" type="file" accept="image/*" style="display:none" />
     </div>
   `
 }
